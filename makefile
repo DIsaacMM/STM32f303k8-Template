@@ -3,11 +3,10 @@ include sources.mk
 BUILD_DIR = build
 LINKER_DIR = linker
 
-
 EXEC = $(BUILD_DIR)/app.elf
 
-# Architectur Specific Flags
-LINKER_FILE = $(LINKER_DIR)/STM32f4.ld # Linker script (ruta completa)
+# Architecture Specific Flags
+LINKER_FILE = $(LINKER_DIR)/STM32F303K8.ld
 CPU = cortex-m4
 ARCH = armv7e-m
 SPECS = nosys.specs
@@ -21,9 +20,9 @@ ARCHFLAGS = 		\
 -mfpu=$(FPU) 		\
 --specs=$(SPECS)
 
-
-# Archivos objeto (se generarán en build/)
-OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC)) # Crear lista de objetos (.o) de la lista de source (.c)
+# Archivos objeto (C y ensamblador)
+OBJS  = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC))
+OBJS += $(patsubst $(SRC_DIR)/%.s, $(BUILD_DIR)/%.o, $(ASM_SRC))
 
 CC = arm-none-eabi-gcc
 
@@ -34,17 +33,22 @@ CFLAGS = 			\
 -std=c99 			\
 -Werror 			\
 -Wall 				\
--DSTM32F411xE		\
-$(ARCHFLAGS)	
+-DSTM32F303x8		\
+$(ARCHFLAGS)
 
 # Linker Flags
 LDFLAGS = 		\
 -nostdlib 		\
 -T 				\
-$(LINKER_FILE)	\
+$(LINKER_FILE)
 
 # Regla para compilar .c a .o en build/
 $(BUILD_DIR)/%.o : $(SRC_DIR)/%.c
+	mkdir -p $(BUILD_DIR)
+	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
+
+# Regla para ensamblar .s a .o en build/
+$(BUILD_DIR)/%.o : $(SRC_DIR)/%.s
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
 
@@ -53,19 +57,16 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 .PHONY : build
-
 build : $(EXEC)
 
 $(EXEC) : $(OBJS)
 	$(CC) $(OBJS) $(CFLAGS) $(INCLUDES) $(LDFLAGS) -o $@
 
 .PHONY : flash
-
 flash : $(EXEC)
-	openocd -f board/st_nucleo_f4.cfg -c "program $(EXEC) verify reset" -c shutdown
+	openocd -f board/st_nucleo_f3.cfg -c "program $(EXEC) verify reset" -c shutdown
 
 .PHONY : clean
-
 clean : 
 	rm -f $(OBJS) $(EXEC)
 	rm -rf $(BUILD_DIR)
