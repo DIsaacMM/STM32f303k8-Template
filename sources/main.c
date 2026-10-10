@@ -17,3 +17,7 @@ int main()
     }
     return 0; 
 }
+
+void _init(void) { }
+void _fini(void) { }
+

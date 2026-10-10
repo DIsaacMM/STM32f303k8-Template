@@ -6,7 +6,7 @@ LINKER_DIR = linker
 EXEC = $(BUILD_DIR)/app.elf
 
 # Architecture Specific Flags
-LINKER_FILE = $(LINKER_DIR)/STM32F303K8.ld
+LINKER_FILE = $(LINKER_DIR)/STM32f3.ld
 CPU = cortex-m4
 ARCH = armv7e-m
 SPECS = nosys.specs
